@@ -59,16 +59,16 @@ pip install datasets peft==0.10.0 tensorboard
 ############################################
 # FlashAttention (wheel-based, portable)
 ############################################
-FLASH_ATTN_WHL="flash_attn-2.7.3+cu12torch2.1cxx11abiTRUE-cp310-cp310-linux_x86_64.whl"
-FLASH_ATTN_URL="https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.3/$FLASH_ATTN_WHL"
+# FLASH_ATTN_WHL="flash_attn-2.7.3+cu12torch2.1cxx11abiTRUE-cp310-cp310-linux_x86_64.whl"
+# FLASH_ATTN_URL="https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.3/$FLASH_ATTN_WHL"
 cd "$ROOT_DIR"
 
-if [ ! -f "$FLASH_ATTN_WHL" ]; then
-    echo "Downloading FlashAttention wheel..."
-    wget "$FLASH_ATTN_URL"
-fi
+# if [ ! -f "$FLASH_ATTN_WHL" ]; then
+#     echo "Downloading FlashAttention wheel..."
+#     wget "$FLASH_ATTN_URL"
+# fi
 
-pip install "$FLASH_ATTN_WHL"
+# pip install "$FLASH_ATTN_WHL"
 
 conda deactivate
 
@@ -92,7 +92,8 @@ conda deactivate
 HF_CACHE="$ROOT_DIR/hf_cache"
 TORCH_CACHE="$ROOT_DIR/torch_cache"
 
-mkdir -p "$HF_CACHE"/{transformers,datasets}
+mkdir -p "$HF_CACHE"/transformers
+mkdir -p "$HF_CACHE"/datasets
 mkdir -p "$TORCH_CACHE"
 
 EXPORT_BLOCK=$(cat <<EOF
@@ -107,6 +108,14 @@ EOF
 if ! grep -q "CAD-Coder caches" ~/.bashrc; then
     echo "$EXPORT_BLOCK" >> ~/.bashrc
 fi
+
+export HF_HOME=$HF_CACHE
+export TRANSFORMERS_CACHE=$HF_CACHE/transformers
+export HF_DATASETS_CACHE=$HF_CACHE/datasets
+export TORCH_HOME=$TORCH_CACHE
+
+source ~/.bashrc
+
 
 echo "Setup complete."
 echo "Run: source ~/.bashrc"
