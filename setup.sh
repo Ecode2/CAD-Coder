@@ -57,17 +57,10 @@ pip install -e ".[train]"
 pip install datasets peft==0.10.0 tensorboard
 
 ############################################
-# PyTorch (CUDA 12.1)
-############################################
-pip uninstall -y torch torchvision torchaudio || true
-pip install torch==2.4.0+cu121 torchvision --index-url https://download.pytorch.org/whl/cu121
-
-############################################
 # FlashAttention (wheel-based, portable)
 ############################################
-FLASH_ATTN_WHL="flash_attn-2.8.3+cu12torch2.4cxx11abiFALSE-cp310-cp310-linux_x86_64.whl"
-FLASH_ATTN_URL="https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/$FLASH_ATTN_WHL"
-
+FLASH_ATTN_WHL="flash_attn-2.7.3+cu12torch2.1cxx11abiTRUE-cp310-cp310-linux_x86_64.whl"
+FLASH_ATTN_URL="https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.3/$FLASH_ATTN_WHL"
 cd "$ROOT_DIR"
 
 if [ ! -f "$FLASH_ATTN_WHL" ]; then
