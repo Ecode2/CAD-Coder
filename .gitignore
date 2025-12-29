@@ -33,3 +33,18 @@ ckpts*
 
 # Demo
 serve_images/
+
+# Local installs
+miniconda3/
+*.whl
+hf_cache/
+torch_cache/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Conda
+.env
