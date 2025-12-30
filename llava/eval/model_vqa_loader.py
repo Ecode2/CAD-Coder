@@ -15,6 +15,12 @@ from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 import math
 
+import torch.nn as nn
+if torch.cuda.is_available():
+    dummy = nn.Conv2d(1, 1, 1).cuda()
+    dummy(torch.randn(1, 1, 8, 8).cuda())
+    del dummy
+    torch.cuda.empty_cache()
 
 def split_list(lst, n):
     """Split a list into n (roughly) equal-sized chunks"""
