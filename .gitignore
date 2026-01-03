@@ -48,3 +48,5 @@ __pycache__/
 
 # Conda
 .env
+
+outputs/

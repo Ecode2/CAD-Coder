@@ -16,39 +16,23 @@ fi
 echo "CAD-Coder directory: $CADCODER_DIR"
 
 ############################################
-# Miniconda setup
+# Python Environment Setup
 ############################################
-MINICONDA_DIR="$ROOT_DIR/miniconda3"
-MINICONDA_INSTALLER="$ROOT_DIR/Miniconda3-latest-Linux-x86_64.sh"
-
-if [ ! -d "$MINICONDA_DIR" ]; then
-    echo "Installing Miniconda..."
-    if [ ! -f "$MINICONDA_INSTALLER" ]; then
-        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O "$MINICONDA_INSTALLER"
-    fi
-    bash "$MINICONDA_INSTALLER" -b -p "$MINICONDA_DIR"
+if [ ! which python ]; then
+    echo "Python is not installed. Please install Python before running this script."
+    exit 1
 fi
+# check for the use of python version 3.10
+echo "Using Python: $(which python)"
+python -m pip install virtualenv
 
-# Initialize conda (no hardcoded paths)
-source "$MINICONDA_DIR/etc/profile.d/conda.sh"
-
-conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
-conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
-
-############################################
-# llava environment
-############################################
-if conda env list | grep -q "^llava"; then
-    echo "Using existing llava environment"
-else
-    conda create -n llava python=3.10 -y
-fi
-
-conda activate llava
+python -m venv $CADCODER_DIR/cad_env
+python -m venv $CADCODER_DIR/iou_env
 
 ############################################
-# Python dependencies (CAD-Coder)
+# CAD-Coder environment and dependencies
 ############################################
+source $CADCODER_DIR/cad_env/bin/activate
 cd "$CADCODER_DIR"
 
 pip install --upgrade pip
@@ -56,48 +40,31 @@ pip install -e .
 pip install -e ".[train]"
 pip install datasets peft==0.10.0 tensorboard
 
-############################################
-# FlashAttention (wheel-based, portable)
-############################################
-# FLASH_ATTN_WHL="flash_attn-2.7.3+cu12torch2.1cxx11abiTRUE-cp310-cp310-linux_x86_64.whl"
-# FLASH_ATTN_URL="https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.3/$FLASH_ATTN_WHL"
-cd "$ROOT_DIR"
-
-# if [ ! -f "$FLASH_ATTN_WHL" ]; then
-#     echo "Downloading FlashAttention wheel..."
-#     wget "$FLASH_ATTN_URL"
-# fi
-
-# pip install "$FLASH_ATTN_WHL"
-
-conda deactivate
+deactivate
 
 ############################################
-# cad_iou environment
+# cad_iou environment and dependencies
 ############################################
-if conda env list | grep -q "^cad_iou"; then
-    echo "cad_iou environment already exists"
-else
-    conda create -n cad_iou python=3.10 -y
-fi
+source $CADCODER_DIR/cad_env/bin/activate
+cd "$CADCODER_DIR"
 
-conda activate cad_iou
-conda install -c conda-forge cadquery -y
+pip install cadquery
 pip install trimesh plyfile pandas tqdm
-conda deactivate
+
+deactivate
 
 ############################################
 # HuggingFace & Torch cache (local, safe)
 ############################################
-HF_CACHE="$ROOT_DIR/hf_cache"
-TORCH_CACHE="$ROOT_DIR/torch_cache"
+HF_CACHE="$CADCODER_DIR/hf_cache"
+TORCH_CACHE="$CADCODER_DIR/torch_cache"
 
 mkdir -p "$HF_CACHE"/transformers
 mkdir -p "$HF_CACHE"/datasets
 mkdir -p "$TORCH_CACHE"
 
 EXPORT_BLOCK=$(cat <<EOF
-# CAD-Coder caches
+# CAD-Coder Model caches
 export HF_HOME=$HF_CACHE
 export TRANSFORMERS_CACHE=$HF_CACHE/transformers
 export HF_DATASETS_CACHE=$HF_CACHE/datasets
@@ -105,17 +72,14 @@ export TORCH_HOME=$TORCH_CACHE
 EOF
 )
 
-if ! grep -q "CAD-Coder caches" ~/.bashrc; then
+if [ -f ~/.bashrc ]; then
     echo "$EXPORT_BLOCK" >> ~/.bashrc
+elif [ -f ~/.zshrc ]; then
+    echo "$EXPORT_BLOCK" >> ~/.zshrc
+else
+    echo "No .bashrc or .zshrc found. Please add the following lines to your shell configuration file:"
+    echo "$EXPORT_BLOCK"
 fi
-
-export HF_HOME=$HF_CACHE
-export TRANSFORMERS_CACHE=$HF_CACHE/transformers
-export HF_DATASETS_CACHE=$HF_CACHE/datasets
-export TORCH_HOME=$TORCH_CACHE
-
-source ~/.bashrc
-
 
 echo "Setup complete."
 echo "Run: source ~/.bashrc"
